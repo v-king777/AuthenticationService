@@ -1,11 +1,16 @@
 ﻿using AuthenticationService.Models;
 using AuthenticationService.Repositories;
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Authentication;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace AuthenticationService.Controllers
@@ -42,6 +47,7 @@ namespace AuthenticationService.Controllers
             };
         }
 
+        [Authorize]
         [HttpGet]
         [Route("viewmodel")]
         public UserViewModel GetUserViewModel()
@@ -59,6 +65,42 @@ namespace AuthenticationService.Controllers
             var userViewModel = _mapper.Map<UserViewModel>(user);
 
             return userViewModel;
+        }
+
+        
+        [HttpPost]
+        [Route("authenticate")]
+        public async Task<UserViewModel> Authenticate(string login, string password)
+        {
+            if (String.IsNullOrEmpty(login) || String.IsNullOrEmpty(password))
+            {
+                throw new ArgumentNullException("Запрос не корректен");
+            }
+
+            User user = _repo.GetByLogin(login);
+
+            if (user is null)
+            {
+                throw new AuthenticationException("Пользователь не найден");
+            }
+
+            if (user.Password != password)
+            {
+                throw new AuthenticationException("Введён неверный пароль");
+            }
+
+            var claims = new List<Claim>()
+            {
+                new Claim(ClaimsIdentity.DefaultNameClaimType, user.Login)
+            };
+
+            ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims, "AppCookie", 
+                ClaimsIdentity.DefaultNameClaimType, ClaimsIdentity.DefaultRoleClaimType);
+
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(claimsIdentity));
+            
+            return _mapper.Map<UserViewModel>(user);
         }
     }
 }
