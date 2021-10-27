@@ -1,4 +1,5 @@
-﻿using AuthenticationService.Models;
+﻿using AuthenticationService.Exceptions;
+using AuthenticationService.Models;
 using AuthenticationService.Repositories;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication;
@@ -15,6 +16,7 @@ using System.Threading.Tasks;
 
 namespace AuthenticationService.Controllers
 {
+    [ExceptionHandler]
     [ApiController]
     [Route("[controller]")]
     public class UserController : ControllerBase
@@ -22,7 +24,7 @@ namespace AuthenticationService.Controllers
         private readonly ILogger _logger;
         private readonly IMapper _mapper;
         private readonly IUserRepository _repo;
-        
+
         public UserController(ILogger logger, IMapper mapper, IUserRepository repo)
         {
             _logger = logger;
@@ -43,11 +45,16 @@ namespace AuthenticationService.Controllers
                 Password = "12345678",
                 FirstName = "Остап",
                 LastName = "Бендер",
-                Email = "bender@gmail.com"
+                Email = "bender@gmail.com",
+                Role = new Role()
+                {
+                    Id = 2,
+                    Name = "Администратор"
+                }
             };
         }
 
-        [Authorize]
+        [Authorize(Roles = "Администратор")]
         [HttpGet]
         [Route("viewmodel")]
         public UserViewModel GetUserViewModel()
@@ -59,7 +66,12 @@ namespace AuthenticationService.Controllers
                 Password = "12345678",
                 FirstName = "Остап",
                 LastName = "Бендер",
-                Email = "bender@gmail.com"
+                Email = "bender@gmail.com",
+                Role = new Role()
+                {
+                    Id = 2,
+                    Name = "Администратор"
+                }
             };
 
             var userViewModel = _mapper.Map<UserViewModel>(user);
@@ -67,7 +79,7 @@ namespace AuthenticationService.Controllers
             return userViewModel;
         }
 
-        
+
         [HttpPost]
         [Route("authenticate")]
         public async Task<UserViewModel> Authenticate(string login, string password)
@@ -91,15 +103,16 @@ namespace AuthenticationService.Controllers
 
             var claims = new List<Claim>()
             {
-                new Claim(ClaimsIdentity.DefaultNameClaimType, user.Login)
+                new Claim(ClaimsIdentity.DefaultNameClaimType, user.Login),
+                new Claim(ClaimsIdentity.DefaultNameClaimType, user.Role.Name)
             };
 
-            ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims, "AppCookie", 
+            ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims, "AppCookie",
                 ClaimsIdentity.DefaultNameClaimType, ClaimsIdentity.DefaultRoleClaimType);
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(claimsIdentity));
-            
+
             return _mapper.Map<UserViewModel>(user);
         }
     }

@@ -16,30 +16,45 @@ namespace AuthenticationService.Repositories
             {
                 Id = Guid.NewGuid(),
                 Login = "ostap",
-                Password = "8WX!=dt55N",
+                Password = "12345678",
                 FirstName = "Остап",
                 LastName = "Бендер",
-                Email = "bender@gmail.com"
+                Email = "bender@gmail.com",
+                Role = new Role()
+                {
+                    Id = 2,
+                    Name = "Администратор"
+                }
             });
 
             _users.Add(new User
             {
                 Id = Guid.NewGuid(),
                 Login = "vasiliy",
-                Password = "C5F6SSB!vK",
+                Password = "1234",
                 FirstName = "Василий",
                 LastName = "Тёркин",
-                Email = "terkin@mail.ru"
+                Email = "terkin@mail.ru",
+                Role = new Role()
+                {
+                    Id = 1,
+                    Name = "Пользователь"
+                }
             });
 
             _users.Add(new User
             {
                 Id = Guid.NewGuid(),
                 Login = "gena",
-                Password = "DPe5sNw!xm",
+                Password = "5678",
                 FirstName = "Гена",
                 LastName = "Букин",
-                Email = "bukin@mail.ru"
+                Email = "bukin@mail.ru",
+                Role = new Role()
+                {
+                    Id = 1,
+                    Name = "Пользователь"
+                }
             });
         }
 

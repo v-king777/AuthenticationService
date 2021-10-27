@@ -1,3 +1,4 @@
+using AuthenticationService.Middlewares;
 using AuthenticationService.Repositories;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -70,6 +71,8 @@ namespace AuthenticationService
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "AuthenticationService v1"));
             }
+
+            app.UseLogMiddleware();
 
             app.UseHttpsRedirection();
 
